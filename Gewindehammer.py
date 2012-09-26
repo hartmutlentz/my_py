@@ -370,6 +370,18 @@ def sort_list_by_length(lis):
         return len(a)-len(b)
     lis.sort(cmp,reverse=True)
     
+def file2dict_var(file,datatypes=('int','float'),key_col=0,val_col=1):
+    """ reads file and returns dict.
+        Key and value columns can be of different types
+    """
+    x=numpy.loadtxt(file,dtype={'names':('1','2'),'formats':(datatypes[0],datatypes[1])},usecols=(key_col,val_col))
+    
+    x_dict={}
+    for i in range(len(x)):
+        x_dict[x[i][key_col]]=x[i][val_col]
+
+    return x_dict
+
 def file2dict(file,sep='\t',datatype='int',key_col=0,val_col=1):
     """ reads file and returns dict. 
         Datatypes: int, float or string
