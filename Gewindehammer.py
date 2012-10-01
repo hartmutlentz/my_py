@@ -378,7 +378,7 @@ def file2dict_var(file,datatypes=('int','float'),key_col=0,val_col=1):
     
     x_dict={}
     for i in range(len(x)):
-        x_dict[x[i][key_col]]=x[i][val_col]
+        x_dict[x[i][0]]=x[i][1]
 
     return x_dict
 
@@ -395,7 +395,7 @@ def file2dict(file,sep='\t',datatype='int',key_col=0,val_col=1):
 
     di={}
     for i in range(len(d)):
-        di[d[i][key_col]]=d[i][val_col]
+        di[d[i][0]]=d[i][1]
     
     return di
 
