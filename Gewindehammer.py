@@ -458,7 +458,7 @@ def dict2file(d,nameoffile='dict.txt',sorted=True):
     
     # if d={ 1: [a,b,c,...], 2:[d,e,f,...],... }
     s=d.values()[0]
-    if isinstance(s,dict) or isinstance(s,list) or isinstance(s,tuple):
+    if isinstance(s,dict) or isinstance(s,list) or isinstance(s,tuple) or isinstance(s,numpy.ndarray):
         laenge=len(d.values()[0])
         g=file(nameoffile,'w+')
         for k in dk:
