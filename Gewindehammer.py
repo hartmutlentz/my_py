@@ -228,27 +228,28 @@ def randomized_network(G_in):
     """ Converts network input network into graph sequence and
         generates new configuration graph.
     """
-    if G.is_directed():
-        inseq=G.in_degree().values()
-        outseq=G.out_degree().values()
+    if G_in.is_directed():
+        inseq=G_in.in_degree().values()
+        outseq=G_in.out_degree().values()
         
         H=nx.directed_configuration_model(inseq,outseq)
         H=nx.DiGraph(H)
         H.remove_edges_from(H.selfloop_edges())
         
+        print "Configuration model --- Edges: input: ",G_in.number_of_edges()," output: ", H.number_of_edges()
         return H
     
     else:
-        seq=G.degree().values()
+        seq=G_in.degree().values()
         
         H=nx.configuration_model(seq)
         H=nx.Graph(H)
         H.remove_edges_from(H.selfloop_edges())
-        
+        print "Configuration model --- Edges: input: ",G_in.number_of_edges()," output: ", H.number_of_edges()        
         return H
 
 def randomize_network_old(G_in):
-	"""
+    """
         Returns a randomized version of a graph or digraph.
         The degree sequence is conserved.
         needs packages: random, networkx
