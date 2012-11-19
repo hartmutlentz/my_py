@@ -223,7 +223,75 @@ def histogram(seq):
     
 def highest_digraph_degree(G,degr='out',rtrn_type='node'):
     return maximum_degree(G,degr='out',rtrn_type='node')
+
+def randomized_network(G_in):
+    """ Converts network input network into graph sequence and
+        generates new configuration graph.
+    """
+    if G.is_directed():
+        inseq=G.in_degree().values()
+        outseq=G.out_degree().values()
+        
+        H=nx.directed_configuration_model(inseq,outseq)
+        H=nx.DiGraph(H)
+        H.remove_edges_from(H.selfloop_edges())
+        
+        return H
     
+    else:
+        seq=G.degree().values()
+        
+        H=nx.configuration_model(seq)
+        H=nx.Graph(H)
+        H.remove_edges_from(H.selfloop_edges())
+        
+        return H
+
+def randomize_network_old(G_in):
+	"""
+        Returns a randomized version of a graph or digraph.
+        The degree sequence is conserved.
+        needs packages: random, networkx
+        Slow!
+    """
+    
+    G=G_in.copy()
+    iterations=G.number_of_edges()
+        
+    def get_legal_edgepair(ed):
+        # returns a disjoint pair of edges
+        def the_condition(fi,se):
+            # condition for disjoint edges
+            if fi[0]==fi[1] or se[0]==se[1]\
+            or fi[0]==se[0] or fi[0]==se[1]\
+            or fi[1]==se[0] or fi[1]==se[1]:
+                return True
+            else: return False
+        
+        first=choice(edges)
+        second=choice(edges)
+        while the_condition(first,second)==True:
+            first=choice(edges)
+            second=choice(edges)
+        return (first,second)
+	
+    # switch edges
+    for i in range(iterations):
+        edges=G.edges()
+        while True:
+            x, y = get_legal_edgepair(edges)
+            if G.has_edge(x[0],y[1])==False\
+            and G.has_edge(y[0],x[1])==False:
+                break
+        
+        G.remove_edge(x[0],x[1])
+        G.remove_edge(y[0],y[1])
+        G.add_edge(x[0],y[1])
+        G.add_edge(y[0],x[1])
+        print 'remaining: ', iterations-i
+    
+    return G
+
 def maximum_degree(G,degr='out',rtrn_type='tupel'):
     """
     Input: (Di)Graph G, 
