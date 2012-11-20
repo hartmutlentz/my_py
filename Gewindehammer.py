@@ -223,8 +223,20 @@ def histogram(seq):
     
 def highest_digraph_degree(G,degr='out',rtrn_type='node'):
     return maximum_degree(G,degr='out',rtrn_type='node')
-
-def randomized_network(G_in):
+    
+def multi_and_parallel_edges(G):
+    """ Return Multiedges and Selfloops of a Multi(Di)Graph
+        
+    """
+    edges=G.edges()
+    dups = [x for x in edges if edges.count(x) > 1]
+    
+    to_move=set(dups)
+    sloops=G.selfloop_egdes()
+    
+    return to_move.union(sloops)            
+        
+def randomize_network(G_in):
     """ Converts network input network into graph sequence and
         generates new configuration graph.
     """
@@ -237,7 +249,6 @@ def randomized_network(G_in):
         H.remove_edges_from(H.selfloop_edges())
         
         print "Configuration model --- Edges: input: ",G_in.number_of_edges()," output: ", H.number_of_edges()
-        return H
     
     else:
         seq=G_in.degree().values()
@@ -246,9 +257,11 @@ def randomized_network(G_in):
         H=nx.Graph(H)
         H.remove_edges_from(H.selfloop_edges())
         print "Configuration model --- Edges: input: ",G_in.number_of_edges()," output: ", H.number_of_edges()        
-        return H
+    
+    
+    return H
 
-def randomize_network_old(G_in):
+def randomize_network_slow(G_in):
     """
         Returns a randomized version of a graph or digraph.
         The degree sequence is conserved.
@@ -269,11 +282,11 @@ def randomize_network_old(G_in):
                 return True
             else: return False
         
-        first=choice(edges)
-        second=choice(edges)
+        first=random.choice(edges)
+        second=random.choice(edges)
         while the_condition(first,second)==True:
-            first=choice(edges)
-            second=choice(edges)
+            first=random.choice(edges)
+            second=random.choice(edges)
         return (first,second)
 	
     # switch edges
@@ -2658,4 +2671,13 @@ def newman_modularity_Q(G,partition):
         q = q/2.0/m
     
     return q
+
+if __name__=="__main__":
+    filestring="/Users/lentz/Desktop/Static-Analysis/Cumulated.mtx"
+    G=nx.read_edgelist(filestring,create_using=nx.DiGraph(),data=False)
+    #G=nx.erdos_renyi_graph(100000,0.00003)
     
+    print "Generated"
+    X=randomize_network(G)
+    print X.number_of_edges(),G.number_of_edges()
+
