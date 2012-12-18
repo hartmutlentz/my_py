@@ -236,7 +236,7 @@ def multi_and_parallel_edges(G):
     
     return to_move.union(sloops)            
         
-def randomize_network(G_in):
+def randomize_network_fast(G_in):
     """ Converts network input network into graph sequence and
         generates new configuration graph.
     """
@@ -247,8 +247,6 @@ def randomize_network(G_in):
         H=nx.directed_configuration_model(inseq,outseq)
         H=nx.DiGraph(H)
         H.remove_edges_from(H.selfloop_edges())
-        
-        print "Configuration model --- Edges: input: ",G_in.number_of_edges()," output: ", H.number_of_edges()
     
     else:
         seq=G_in.degree().values()
@@ -256,22 +254,25 @@ def randomize_network(G_in):
         H=nx.configuration_model(seq)
         H=nx.Graph(H)
         H.remove_edges_from(H.selfloop_edges())
-        print "Configuration model --- Edges: input: ",G_in.number_of_edges()," output: ", H.number_of_edges()        
     
+    #print "Configuration model --- Edges: input: ",G_in.number_of_edges(),\
+    #" output: ", H.number_of_edges()
     
     return H
 
-def randomize_network_slow(G_in):
+def randomize_network(G_in,maxiterations=False):
     """
         Returns a randomized version of a graph or digraph.
         The degree sequence is conserved.
-        needs packages: random, networkx
-        Slow!
     """
+    assert False,"gwh.randomize_network is wrong."
     
     G=G_in.copy()
-    iterations=G.number_of_edges()
-        
+    if maxiterations:
+        iterations=maxiterations
+    else:
+        iterations=G.number_of_edges()
+    
     def get_legal_edgepair(ed):
         # returns a disjoint pair of edges
         def the_condition(fi,se):
@@ -290,19 +291,24 @@ def randomize_network_slow(G_in):
         return (first,second)
 	
     # switch edges
+    edges=G.edges()[:]
     for i in range(iterations):
-        edges=G.edges()
         while True:
             x, y = get_legal_edgepair(edges)
-            if G.has_edge(x[0],y[1])==False\
-            and G.has_edge(y[0],x[1])==False:
+            if (x[0],y[1]) not in edges\
+            and (y[0],x[1]) not in edges:
                 break
         
-        G.remove_edge(x[0],x[1])
-        G.remove_edge(y[0],y[1])
-        G.add_edge(x[0],y[1])
-        G.add_edge(y[0],x[1])
+        edges.remove((x[0],x[1]))
+        edges.remove((y[0],y[1]))
+        edges.append((x[0],y[1]))
+        edges.append((y[0],x[1]))
+        
         print 'remaining: ', iterations-i
+    
+    G.clear()
+    G.add_nodes_from(G_in.nodes())
+    G.add_edges_from(edges)
     
     return G
 
@@ -2672,12 +2678,19 @@ def newman_modularity_Q(G,partition):
     
     return q
 
+
+
+
 if __name__=="__main__":
-    filestring="/Users/lentz/Desktop/Static-Analysis/Cumulated.mtx"
-    G=nx.read_edgelist(filestring,create_using=nx.DiGraph(),data=False)
-    #G=nx.erdos_renyi_graph(100000,0.00003)
+    #filestring="/Users/lentz/Desktop/Static-Analysis/Cumulated.mtx"
+    #G=nx.read_edgelist(filestring,create_using=nx.DiGraph(),data=False)
+    #G=nx.erdos_renyi_graph(10000,0.03)
+    G=nx.gnm_random_graph(100000,10000)
     
     print "Generated"
+    #print G.degree()
+    #X=randomize_network_slow(G)
     X=randomize_network(G)
+    #print X.degree()
     print X.number_of_edges(),G.number_of_edges()
 
