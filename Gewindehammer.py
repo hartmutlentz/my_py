@@ -355,7 +355,36 @@ def longest_range_node(G):
     y=revert_dictionary(x)
     mm=max(y.keys())
     return y[mm][0]
+
+def ranges_percolating_system(G):
+    """ computes Ranges and uses giant connected component
+        to save cpu time.
     
+    """
+    print 'Ranges for percolating network is not tested yet!'
+    if G.is_directed():
+        LCC=nx.strongly_connected_component_subgraphs(G)[0]
+    else:
+        LCC=nx.connected_component_subgraphs(G)[0]
+
+    rang={}
+
+    # an arbitrary LCC node
+    laenge=nx.single_source_shortest_path_length(G,LCC.nodes()[0])
+    lcc_range=len(laenge)-1
+    # = all LCC nodes
+    for node in LCC.nodes():
+        rang[node]=lcc_range
+    print "ranges: LCC done."
+
+    # remaining nodes
+    nodes=set(G.nodes())-set(LCC.nodes())
+    for start in nodes:
+        laenge=nx.single_source_shortest_path_length(G,start)
+        rang[start]=len(laenge)-1
+    return rang
+
+
 def ranges(G,nodes=False,display=False):
     return ranges_single_sources(G,nodes,display)
 
@@ -533,10 +562,8 @@ def dict2file(d,nameoffile='dict.txt',sorted=True):
     
     def list2dict(li):
         x={}
-        i=0
-        for el in li:
+        for (i,el) in enumerate(li):
             x[i]=el
-            i+=1
         return x
     
     if not isinstance(d,dict): d=list2dict(d)
