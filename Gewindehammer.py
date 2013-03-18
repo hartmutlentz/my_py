@@ -260,58 +260,6 @@ def randomize_network_fast(G_in):
     
     return H
 
-def randomize_network(G_in,maxiterations=False):
-    """
-        Returns a randomized version of a graph or digraph.
-        The degree sequence is conserved.
-    """
-    assert False,"gwh.randomize_network is wrong."
-    
-    G=G_in.copy()
-    if maxiterations:
-        iterations=maxiterations
-    else:
-        iterations=G.number_of_edges()
-    
-    def get_legal_edgepair(ed):
-        # returns a disjoint pair of edges
-        def the_condition(fi,se):
-            # condition for disjoint edges
-            if fi[0]==fi[1] or se[0]==se[1]\
-            or fi[0]==se[0] or fi[0]==se[1]\
-            or fi[1]==se[0] or fi[1]==se[1]:
-                return True
-            else: return False
-        
-        first=random.choice(edges)
-        second=random.choice(edges)
-        while the_condition(first,second)==True:
-            first=random.choice(edges)
-            second=random.choice(edges)
-        return (first,second)
-	
-    # switch edges
-    edges=G.edges()[:]
-    for i in range(iterations):
-        while True:
-            x, y = get_legal_edgepair(edges)
-            if (x[0],y[1]) not in edges\
-            and (y[0],x[1]) not in edges:
-                break
-        
-        edges.remove((x[0],x[1]))
-        edges.remove((y[0],y[1]))
-        edges.append((x[0],y[1]))
-        edges.append((y[0],x[1]))
-        
-        print 'remaining: ', iterations-i
-    
-    G.clear()
-    G.add_nodes_from(G_in.nodes())
-    G.add_edges_from(edges)
-    
-    return G
-
 def maximum_degree(G,degr='out',rtrn_type='tupel'):
     """
     Input: (Di)Graph G, 
@@ -551,7 +499,27 @@ def write_array(arr,fname='array.txt'):
         for j in range(1,len(arr[i])): wstring += '\t'+str(arr[i][j])
         g.writelines(( str(arr[i][0])+wstring+'\n' ))        
     g.close
-           
+
+def plot_dict(d, xlabel, ylabel, filename):
+    """
+        Plotting the keys and values given in dictionary
+        d = dictionary
+        xlabel = label for x-axis
+        ylabel = label for y-axis
+        filename = output filename
+    """
+    import matplotlib.pyplot as plt
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    
+    ax.plot(d.values(), marker='o')
+    ticks = np.arange(len(d.keys()))
+    ax.set_xticks(ticks)
+    ax.set_xticklabels(d.keys())
+    ax.set_xlabel(xlabel)
+    ax.set_ylabel(ylabel)
+    plt.savefig(filename)
+
 def dict2file(d,nameoffile='dict.txt',sorted=True):
     """ Writes dictionary (or list or tuple) to a textfile
         Sorted by keys, if sorted=True.
@@ -739,15 +707,15 @@ def cdf(seq,rtn_type='dict',norm=True,bridge_values=False):
 
 def cdf2histogram(c_in):
     """ Reads cdf and returns histogram. """
-    if isinstance(c_in,list):
+    """if isinstance(c_in,list):
         c=c_in
     else:
-        c=loadtxt("Shortest_Path_cdf.txt",dtype=int,usecols=(1,))
+        c=np.loadtxt("Shortest_Path_cdf.txt",dtype=int,usecols=(1,))"""
         
     h=[]
-    h.append(c[0])
-    for i in range(1,len(c)):
-        h.append(c[i]-c[i-1])
+    h.append(c_in[0])
+    for i in range(1,len(c_in)):
+        h.append(c_in[i]-c_in[i-1])
     return h
 
 def graph2dot(G,f_name='Graph.dot'):
@@ -2189,7 +2157,7 @@ def directed_graph(G,p_bi=0.1):
     return D
 
 
-def generate_community_test_graph(p_in=0.05,p_out=0.001,mod_size=32,\
+def generate_community_test_graph(p_in=0.5,p_out=0.001,mod_size=32,\
     mod_number=4, directed=False,files=False,rtrn_comdict=False,\
     print_info=False):
     """
@@ -2202,6 +2170,8 @@ def generate_community_test_graph(p_in=0.05,p_out=0.001,mod_size=32,\
     Guimera, Amaral: Cartography of complex networks
     NOTE: p_out doesn't scale as p_in! It should be p_out<<1!
     """
+    assert mod_number>0,'Module number must be at least 1.'
+    
     graphs=[]
     # node label mapping
     def new_node_labels(G,co):
