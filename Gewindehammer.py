@@ -304,6 +304,21 @@ def longest_range_node(G):
     mm=max(y.keys())
     return y[mm][0]
 
+def shortest_path_length_distribution(G):
+    """ The shortest path length distribution of a (Di)Graph. """
+    # init histogram
+    all_lengths=[]
+    
+    for i,start in enumerate(G.nodes()):
+        print "shortest path lengths of node ",i
+        all_targets=nx.shortest_path_length(G,start)
+        del all_targets[start]
+        all_lengths.extend(all_targets.values())
+    
+    print "Shortest paths. mean", numpy.mean(all_lengths)
+    
+    return numpy.bincount(all_lengths)
+
 def ranges_percolating_system(G):
     """ computes Ranges and uses giant connected component
         to save cpu time.
