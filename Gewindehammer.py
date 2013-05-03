@@ -1253,7 +1253,7 @@ def angle_to_bisectrix(vect):
     phimax=math.acos(math.sqrt(1.0/dim))
     bisect=numpy.ones(dim,dtype='float32')
     term=numpy.dot(vect,bisect)/(scipynorm(vect)*scipynorm(bisect))
-    if term <= 1.0:
+    if abs(term) <= 1.0:
         return math.acos(term)/phimax
     else:
         print 'angle_to_bisectrix. acos-term: ',term,\
