@@ -7,7 +7,8 @@
 #  Copyright (c) 2008 __MyCompanyName__. All rights reserved.
 #
 # Packages (Mac OS X): /Library/Python/2.5/site-packages
-import math,random,string,pprint,numpy,scipy,scipy.sparse,csv
+import math,random,string,pprint,itertools
+import numpy,scipy,scipy.sparse,csv
 from scipy.linalg import norm as scipynorm
 
 import networkx as nx
@@ -307,17 +308,21 @@ def longest_range_node(G):
 def shortest_path_length_distribution(G):
     """ The shortest path length distribution of a (Di)Graph. """
     # init histogram
-    all_lengths=[]
+    all_bins=numpy.array([0 for i in range(G.number_of_nodes())])
     
     for i,start in enumerate(G.nodes()):
         print "shortest path lengths of node ",i
         all_targets=nx.shortest_path_length(G,start)
-        del all_targets[start]
-        all_lengths.extend(all_targets.values())
-    
-    print "Shortest paths. mean", numpy.mean(all_lengths)
-    
-    return numpy.bincount(all_lengths)
+        #del all_targets[start]
+        
+        x=numpy.bincount(all_targets.values())
+        for i in range(len(x)): all_bins[i] += x[i]
+
+    # only the non zero part
+    until_zero = [i for i in itertools.takewhile(lambda y: y>0, all_bins)]
+    until_zero[0]=0
+            
+    return until_zero
 
 def ranges_percolating_system(G):
     """ computes Ranges and uses giant connected component
