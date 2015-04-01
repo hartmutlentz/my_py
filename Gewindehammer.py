@@ -7,7 +7,7 @@
 #  Copyright (c) 2008 __MyCompanyName__. All rights reserved.
 #
 # Packages (Mac OS X): /Library/Python/2.5/site-packages
-import math,random,string,pprint,itertools
+import math,random,string,pprint,itertools,os
 import numpy,scipy,scipy.sparse,csv
 from scipy.linalg import norm as scipynorm
 
@@ -324,32 +324,60 @@ def shortest_path_length_distribution(G):
             
     return until_zero
 
+def giant_component(G, strongly=True):
+    """ returns the giant component of a network as a (Di)Graph.
+        If network is directed:
+            strongly=True, returns GSCC
+            GWCC otherwise.
+    """
+    if G.is_directed():
+        if strongly:
+            components = nx.strongly_connected_component_subgraphs
+        else:
+            components = nx.weakly_connected_component_subgraphs
+    else:
+        components = nx.connected_component_subgraphs
+    
+    ccs = components(G)
+    ccs = sorted(ccs, key=len, reverse=True)
+    return ccs[0]
+
 def ranges_percolating_system(G):
     """ computes Ranges and uses giant connected component
         to save cpu time.
     
     """
-    print 'Ranges for percolating network is not tested yet!'
+    # print 'Ranges for percolating network is not tested yet!'
+    
     if G.is_directed():
-        LCC=nx.strongly_connected_component_subgraphs(G)[0]
+        #comps = nx.strongly_connected_component_subgraphs(G)
+        #comps = list(comps)
+        #comps.sort(compare, reverse=True)
+        comps = sorted(nx.strongly_connected_component_subgraphs(G),\
+            key=len, reverse=True)
+        LCC = comps[0]
     else:
-        LCC=nx.connected_component_subgraphs(G)[0]
+        comps = sorted(nx.connected_component_subgraphs(G),\
+            key=len, reverse=True)
+        LCC = comps[0]
 
-    rang={}
+    rang = {}
 
     # an arbitrary LCC node
-    laenge=nx.single_source_shortest_path_length(G,LCC.nodes()[0])
-    lcc_range=len(laenge)-1
+    laenge = nx.single_source_shortest_path_length(G,LCC.nodes()[0])
+    lcc_range = len(laenge)-1
     # = all LCC nodes
     for node in LCC.nodes():
-        rang[node]=lcc_range
+        rang[node] = lcc_range
     print "ranges: LCC done."
 
     # remaining nodes
-    nodes=set(G.nodes())-set(LCC.nodes())
-    for start in nodes:
-        laenge=nx.single_source_shortest_path_length(G,start)
-        rang[start]=len(laenge)-1
+    nodes = set(G.nodes()) - set(LCC.nodes())
+    remaining_nodes = len(nodes)
+    for (i, start) in enumerate(nodes):
+        print "Node ", i, " of ", remaining_nodes
+        laenge = nx.single_source_shortest_path_length(G,start)
+        rang[start] = len(laenge) - 1
     return rang
 
 
