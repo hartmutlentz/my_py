@@ -324,6 +324,12 @@ def shortest_path_length_distribution(G):
             
     return until_zero
 
+def grouper(iterable, n, fillvalue=None):
+    "Collect data into fixed-length chunks or blocks. From py itertools recipes"
+    # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
+    args = [iter(iterable)] * n
+    return itertools.izip_longest(fillvalue=fillvalue, *args)
+
 def giant_component(G, strongly=True):
     """ returns the giant component of a network as a (Di)Graph.
         If network is directed:
