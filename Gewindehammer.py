@@ -348,6 +348,30 @@ def giant_component(G, strongly=True):
     ccs = sorted(ccs, key=len, reverse=True)
     return ccs[0]
 
+def giant_out_component(G, return_giant_component=True):
+    """ Returns the giant out component of a directed network.
+        If return_giant_component == False, only GOC nodes without GC nodes
+        are returned.
+    """
+    GC = giant_component(G, strongly=True)
+    
+    # start at a random node and do BFS
+    node = GC.nodes()[0]
+    GOC_nodes = list(nx.dfs_preorder_nodes(G, node))
+    
+    if not return_giant_component:
+        GOC_nodes = set(GOC_nodes) - set(GC.nodes())
+
+    return G.subgraph(GOC_nodes)
+
+def giant_in_component(G, return_giant_component=True):
+    """ Returns the giant in component of a directed network.
+        If return_giant_component == False, only GIC nodes without GC nodes
+        are returned.
+    """
+    return giant_out_component(G.reverse(), return_giant_component)
+
+
 def ranges_percolating_system(G):
     """ computes Ranges and uses giant connected component
         to save cpu time.
