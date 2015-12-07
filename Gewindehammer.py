@@ -466,24 +466,6 @@ def reachabilities_single_sources(G,nodes=None):
     G1=G.reverse()
     return ranges_single_sources(G1,the_nodes)
 
-def small_world_score(G,startnode,norm_by_range=True):
-    """ returns value for histogram number_of_nodes(distance).
-        Many close nodes increase this value.
-    """
-    laenge=shortest_path_length(G,startnode)
-    del laenge[startnode]
-    l2=revert_dictionary(laenge)
-    sc=0.0
-    
-    for i in range(1,len(l2)):
-        sc += len(l2[i])/float(i)
-
-    if norm_by_range:
-        if sc==0.0: return sc
-        else: return sc/len(laenge)
-    else: 
-        return sc
-
 def revert_dictionary(di,bijection=False):
     """
     Reverts dictionary. Output as dict of lists
@@ -545,14 +527,7 @@ def file2dict(file,sep='\t',datatype='int',key_col=0,val_col=1):
 def is_symmetric_matrix(M):
     """ Returns True, if M is symmetrix
     """
-    return M==M.transpose()
-    
-def fast_write_matrix(A,nameoffile='matrix.txt'):
-    #
-    writer=csv.writer(open(nameoffile,"wb"))
-    indices=zip(A.nonzero()[0],A.nonzero()[1])
-    for i,j in indices:
-        writer.writerow([i,j,A[i,j]])
+    return M == M.transpose()
     
 def write_sparse_matrix(A,nameoffile='matrix.txt'):
     # Write sparse matrix to textfile
@@ -564,6 +539,7 @@ def write_sparse_matrix(A,nameoffile='matrix.txt'):
     g.close
 
 def array2file(x,f):
+    # alias
     write_array(x,f)
     
 def write_array(arr,fname='array.txt'):
@@ -811,8 +787,7 @@ def graph2dot(G,f_name='Graph.dot'):
         for ed in G.edges():
             d.writelines(('    ',str(ed[0]),' -- ',str(ed[1]),';','\n'))
     d.writelines('}\n')
-    d.close()    
-    
+    d.close()
 
 def data2dot_weighted(dat,f_name):
     # schreibt alle drei spalten der daten in eine dot-Datei
@@ -849,108 +824,6 @@ def edgefile2dot(edgefile,dotfile,sep,digraph=True):
     komm=read_file(edgefile,sep)
     data2dot(komm,dotfile,digraph)
 
-
-def hurwitz_zeta(alf,x_m,lim):
-    z=[]
-    for i in range(lim):
-        z.append((i+x_m)**(-alf))
-    return sum(z)
-    
-def riemann_zeta(alf,lim):
-    if alf <= 1.0:
-        print 'Error: Alpha < 1!'
-        return 0
-    z=[]
-    for i in range(lim):
-        z.append(i**(-alf))
-    return sum(z)
-
-def mle_alpha(seq,x_m):
-    # returns alpha-1 from integer Input data
-    # alpha-1 is the slope of the CDF
-    fl_seq=[ 0 for i in range (len(seq)) ]
-    for i in range(len(seq)):
-        fl_seq[i]=float(seq[i])
-
-    temp=[]
-    for i in range(len(seq)):
-        if fl_seq[i]>x_m:
-            temp.append(math.log(fl_seq[i]/(x_m-0.5)))
-        
-    alpha=1.0+len(temp)/sum(temp)
-    print 'Alpha-Abschaetzung: ',len(temp),' Werte wurden beruecksichtigt'
-
-    return alpha-1.0
-
-def print_graph_properties(G):
-    print '\nEigenschaften des Graphen:'
-    print 'Graph gerichtet?.....................',is_directed(G)
-    print 'Anzahl der Knoten....................',G.number_of_nodes()
-    print 'Anzahl der Kanten....................',G.number_of_edges()
-    print 'Dichte...............................',link_density(G) 
-    if G.is_directed():
-        outs=G.out_degree()
-        outs=outs.values()
-        ins=G.in_degree()
-        ins=ins.values()
-        print 'maximaler In-Grad:...................',max(ins)
-        print 'maximaler Aus-Grad:..................',max(outs)
-        print 'Graph azyklisch?.....................',is_directed_acyclic_graph(G)
-    else:
-        grad=G.degree()
-        grad=grad.values()
-        print 'Maximaler Grad.......................',max(grad)
-        #print clustering(G)
-        #print 'Mittlerer Clustering-Koeffizient.....',average_clustering(G)
-        co=is_connected(G)
-        print 'Graph connected?.....................',co,'\n'
-        if co and others:
-            print 'Exzentrizitaet.......................',eccentricity(G)
-            print 'Durchmesser..........................',diameter(G)
-            print 'Radius...............................',radius(G)
-            print 'Zentrum..............................',center(G)
-
-def print_node_properties(G,node):
-    print 'Properties of node #:..',node
-    print 'Out-degree:............',G.out_degree(node)
-    print 'In-degree:.............',G.in_degree(node)
-    print 'Closeness:.............', nx.closeness_centrality(G,node,weighted_edges=True)
-    print 'Range:.................', range_single_node(G,node),'\n'
-
-def powerdev_pos_int_sequence(alf,size):
-    """
-    Power-law random generator from "Computer simulation of 
-    attractors in stochastic models with 
-    alpha-stable noise". 
-    Input: Exponent between 0 and 2. This is the exponent of the CDF. 
-    Return type: list with 'size' of positive integers. 
-    """
-    if alf>2.0:
-        print 'exponent greater then 2!!!'
-        return 0
-    se=[]
-    for i in range(size):
-        y=random.random()
-        v=y*math.pi-math.pi/2.0
-        w=expovariate(1.0)
-        x=math.sin(alf*v)/(cos(v))**(1.0/alf)*(cos(v-alf*v)/w)**((1.0-alf)/alf)
-        x=int(abs(x)) 
-        se.append(x)
-    return se
-    
-def powerdev_pos_float(alf):
-    """
-    Returns a power-law distributed positive float.
-    """
-    if alf>2.0:
-        print 'exponent greater then 2!!!'
-        return None
-    y=random.random()
-    v=y*math.pi-math.pi/2.0
-    w=expovariate(1.0)
-    x=math.sin(alf*v)/(cos(v))**(1.0/alf)*(cos(v-alf*v)/w)**((1.0-alf)/alf)
-    return abs(x) 
-
 def matrix_friendly_node_labels_text(fname,outfile,mapfile='node_labels.txt'):
     """ Reads textfile (edgelist) and returns file
         with new node labels ranging 0,...,n.
@@ -977,7 +850,7 @@ def matrix_friendly_node_labels_text(fname,outfile,mapfile='node_labels.txt'):
     
     return
         
-def matrix_friendly_node_labels(G,return_mapping=False):
+def matrix_friendly_node_labels(G, return_mapping=False):
     """ Returns (Di)Graph with nodes labelled 0,1,2,3,...
         Good for matrix representations.
         If return_mapping: returns ((Di)Graph,label_mapping)
@@ -996,96 +869,6 @@ def matrix_friendly_node_labels(G,return_mapping=False):
         return (X,new_label)
     else:
         return X
-
-def w_func_graph2matrix(u,v):
-    """ weight function for txt2sparse_matrix
-        j is the line of the array dat.
-    """ 
-    freq=get_edge_data(u,v)['frequenz']
-    vol=get_edge_data(u,v)['volumen']
-    return vol*freq/912.5    
-
-def graph2sparse_matrix(G,func=None, out='csr',conv_node_labels=False):
-    """
-    Returns sparse adjacency matrix from weighted or unweighted (Di)Graph G.
-    Return type: default csr-Matrix. 'lil' possible.
-    Note: Graph interprets weighted edges as distances (probably > 1.0), 
-    Trade-Matrix could be < 1.0.
-    If nodes of input graph are not 0,1,2,3,..., use conv_node_labels!
-    """
-    if conv_node_labels: G = matrix_friendly_node_labels(G)
-    
-    A_sp=scipy.sparse.csr_matrix((G.number_of_nodes(),G.number_of_nodes()), dtype='float32')
-    
-    if func:
-        if G.is_directed():
-            for i in G.edges(data=True):
-                u, v = i[0], i[1]
-                A_sp[int(u),int(v)]= func(u,v)        
-        else:
-            for i in G.edges(data=True):
-                u, v = i[0], i[1]
-                A_sp[int(u),int(v)]= func(u,v)
-                A_sp[int(v),int(u)]= func(u,v)
-    else:
-        if G.is_directed():
-            for i in G.edges(data=True):
-                u, v = i[0], i[1]
-                A_sp[int(u),int(v)]= 1.0        
-        else:
-            for i in G.edges(data=True):
-                u, v = i[0], i[1]
-                A_sp[int(u),int(v)]= 1.0
-                A_sp[int(v),int(u)]= 1.0
-    
-    if out=='csr':
-        return A_sp.tocsr()
-    elif out=='lil':
-        return A_sp.tolil()
-    else: 
-        print 'graph2sparse_matrix Input-Error.'
-        return None
-
-def graph2laplace_matrix(G,out='csr',conv_node_labels=False):
-    """
-    Returns sparse (out-)laplace matrix from unweighted (Di)Graph G.
-    Return type: default csr-Matrix. 'lil' possible.
-    Note: Graph interprets weighted edges as distances (probably > 1.0), 
-    Trade-Matrix could be < 1.0.
-    If nodes of input graph are not 0,1,2,3,..., use conv_node_labels!
-    """
-    if conv_node_labels: G = matrix_friendly_node_labels(G)
-    
-    A_sp=scipy.sparse.csr_matrix((G.number_of_nodes(),G.number_of_nodes()), dtype='int')
-    
-    if G.is_directed():
-        for i in G.edges(data=True):
-            u, v = i[0], i[1]
-            A_sp[int(u),int(v)]= 1
-        outd=A_sp.sum(axis=1)
-        for i in range(G.number_of_nodes()):
-            A_sp[i,i]=-outd[i,0]
-    else:
-        for i in G.edges(data=True):
-            u, v = i[0], i[1]
-            A_sp[int(u),int(v)]= 1
-            A_sp[int(v),int(u)]= 1
-    
-    if out=='csr':
-        return A_sp.tocsr()
-    elif out=='lil':
-        return A_sp.tolil()
-    else: 
-        print 'graph2sparse_matrix Input-Error.'
-        return None
-
-def w_func(dat,j,args):
-    """ weight function for txt2sparse_matrix
-        j is the line of the array dat.
-    """ 
-    frequency=float(dat[j][args['frequenz']-1])
-    volume=float(dat[j][args['volumen']-1])
-    return volume*frequency/912.5        
 
 def txt2sparse_matrix(file,dim,funk=w_func,delimiter='\t',scale=1.0,\
     rtrn_type='lil',symm=False,selfloops=False,**weightcol):
@@ -1126,65 +909,7 @@ def txt2sparse_matrix(file,dim,funk=w_func,delimiter='\t',scale=1.0,\
     
     if rtrn_type=='csr': return A_sp.tocsr()
     elif rtrn_type=='lil': return A_sp
-    else: return None    
-
-def txt2Graph(infile,delimiter='\t',\
-    type='DiGraph',selfloops=False,convert2numeric='to_int',\
-    attr=False):
-    """
-    like txt2Graph, but attributes are given to edges.
-    Example: 
-        if the 3rd column contains the weight of the edges:
-        attr={'weight':3}
-    Access to edge data: G.get_edge_data(u,v)['weight']
-    """
-    # read input file as data
-    data=read_file(infile,delimiter)
-    
-    if convert2numeric=='to_int': string2int_data(data)
-    elif convert2numeric=='to_float': 
-        string2float_data(data)
-        for i in range(len(data)):
-            data[i][0]=int(data[i][0])
-            data[i][1]=int(data[i][1])
-    
-    # initiate Graph
-    if type=='DiGraph': G=nx.DiGraph()
-    elif type=='Graph': G=nx.Graph()
-    elif type=='MultiDiGraph': G=nx.MultiDiGraph()
-    elif type=='MultiGraph': G=nx.MultiGraph()
-    else:
-        raise Exception, 'txt2Graph_attributed Input Error!'
-
-    # add edges to graph
-    if attr:
-        for k in range(len(data)):
-            u=data[k][0]
-            v=data[k][1]
-            attr_single_edge={}
-            for key in attr: 
-                attr_single_edge[key]=data[k][int(attr[key])-1] 
-            G.add_edge(u,v,attr_single_edge)
-    else:
-        for k in range(len(data)):
-            u=data[k][0]
-            v=data[k][1]
-            G.add_edge(u,v)
-
-    if not selfloops: remove_selfloops(G)
-    return G
-    
-def graph2file(G,filen='edgelist.txt'):
-    """
-    Writes edgelist from graph G into textfile.
-    Note that isolated nodes are ignored.
-    """
-    g=file(filen,'w+')
-    for e in G.edges():
-        g.writelines((str(e[0]),'\t',str(e[1]),'\n'))
-    g.close
-    
-    return
+    else: return None
 
 def graph_with_node_sizes(infile,sep='\t',wcol=3,directn='both'):
     """
@@ -1349,7 +1074,6 @@ def digraph_bidirectional(G):
     
     return temp/float(G.number_of_edges())
     
-    
 def pylab_histogramm():
     """
     The most important histogramm commands
@@ -1488,22 +1212,6 @@ def rk4_1D(step_range=10,stepsize=0.1,x_init=0.1,t_init=0.0,reverse_output=False
         return sol2
     else: return sol1
 
-def shift_21(inp,shiftno=1):
-    """
-    Shifts index from 0,...,n-1 to 1,...,n
-    Input: list inp, int shiftno (default=1) for shifting to 2,3,...
-    Output: dict
-    Note: for-loops in C: for(i=1;i<=n;i++) -> for i in range(1,n+1)
-    """
-    outp={}
-    if (shiftno==1):
-        for i in range(len(inp)):
-            outp[i+1]=inp[i]
-    else:
-        for i in range(len(inp)):
-            outp[i+shiftno]=inp[i]
-    return outp
-
 def peakdetect(y_axis, x_axis = None, lookahead = 500, delta = 0):
     """
     Converted from/based on a MATLAB script at http://billauer.co.il/peakdet.html
@@ -1606,310 +1314,6 @@ def peakdetect(y_axis, x_axis = None, lookahead = 500, delta = 0):
         pass
     
     return maxtab, mintab
-
-
-def pol_interpolation(xa_in,ya_in,x):
-    """
-    Polynom interpolation. 
-    Input: Data points and value x where to interpolate
-    Output: f(x), error(f(x))
-    """ 
-    xa=shift_21(xa_in)
-    ya=shift_21(ya_in)
-    ns=1
-    n=len(xa)
-    n2=len(ya)
-    if(n!=n2):
-        print "Dimension Error."
-        return
-    
-    dif = abs(x-float(xa[1]))
-    c={}
-    d={}
-    
-    for i in range(1,n+1):
-        dift=abs(x-float(xa[i]))
-        if dift < dif: 
-            ns=i
-            dif=dift
-        c[i]=ya[i]
-        d[i]=ya[i]
-    y=ya[ns]
-    ns=ns-1
-    for m in range(1,n):
-        for i in range(1,n-m+1):
-            ho=xa[i]-x
-            hp=xa[i+m]-x
-            w=c[i+1]-d[i]
-            den=ho-hp
-            if (den == 0.0): 
-                print "Error"
-                #return
-            den=w/den
-            d[i]=hp*den
-            c[i]=ho*den
-        if (2*ns < (n-m)): dy=c[ns+1]
-        else: 
-            dy=d[ns]
-            ns=ns-1
-        y=y+dy
-    return (y,dy)
-    
-def rat_interpolation(xa_in,ya_in,x):
-    """
-    Rational function interpolation. 
-    Input: Data points and value x where to interpolate
-    Output: f(x), error(f(x))
-    """
-    xa=shift_21(xa_in)
-    ya=shift_21(ya_in)
-    n=len(xa_in)
-    tiny=1.0e-25
-    ns=1
-    c={} 
-    d={}
-    hh=abs(x-xa[1])
-    for i in range(1,n+1):
-        h=abs(x-xa[i])
-        if(h==0.0):
-            y=ya[i]
-            dy=0.0
-            return
-        elif (h<hh):
-            ns=i
-            hh=h
-        c[i]=ya[i]
-        d[i]=ya[i]+tiny
-    y=ya[ns]
-    ns=ns-1
-    for m in range(1,n):
-        for i in range(1,n-m+1):
-            w=c[i+1]-d[i]
-            h=xa[i+m]-x
-            t=(xa[i]-x)*d[i]/h
-            dd=t-c[i+1]
-            if(dd==0.0): 
-                print "Pole at interpolation point"
-                return
-            dd=w/dd
-            d[i]=c[i+1]*dd
-            c[i]=t*dd
-        if (2*ns<(n-m)): dy=c[ns+1]
-        else: 
-            dy=d[ns]
-            ns=ns-1
-        y=y+dy
-    return (y,dy)
-    
-    
-def spline_interpolation(x_in,y_in,yp1,ypn,x):
-    """
-    Cubic spline interpolation. 
-    Input: 
-    Data points (arrays): x_in,y_in. 
-    2nd derivatives at first point (yp1) and last point (ypn). 
-    x - point where to extrapolate
-    Output: f(x)
-    """
-    def spline(x_in,y_in,yp1,ypn):
-        """
-        Subroutine for spline interpolation
-        """
-        n=len(x_in)
-        x=shift_21(x_in)
-        y=shift_21(y_in)
-        u={}
-        y2={}
-        if (yp1>0.99e30): 
-            y2[1]=0.0
-            u[1]=0.0
-        else:
-            y2[1]=-0.5
-            u[1]=(3.0/(x[2]-x[1]))*((y[2]-y[1])/(x[2]-x[1])-yp1)    
-        for i in range(2,n):
-            sig=(x[i]-x[i-1])/(x[i+1]-x[i-1])
-            p=sig*y2[i-1]+2.0
-            y2[i]=(sig-1.0)/p
-            u[i]=(y[i+1]-y[i])/(x[i+1]-x[i]) - (y[i]-y[i-1])/(x[i]-x[i-1])
-            u[i]=(6.0*u[i]/(x[i+1]-x[i-1])-sig*u[i-1])/p
-        if (ypn > 0.99e30): 
-            qn=0.0
-            un=0.0
-        else:     
-            qn=0.5
-            un=(3.0/(x[n]-x[n-1]))*(ypn-(y[n]-y[n-1])/(x[n]-x[n-1]))
-        y2[n]=(un-qn*u[n-1])/(qn*y2[n-1]+1.0)
-        
-        k=n-1
-        while(k>0):
-            y2[k]=y2[k]*y2[k+1]+u[k]
-            k=k-1
-        return y2
-
-    xa=shift_21(x_in)
-    ya=shift_21(y_in)
-    y2a=spline(x_in,y_in,yp1,ypn)
-    klo=1
-    khi=len(x_in)
-    while(khi-klo > 1):
-        k=(khi+klo)/2
-        if (xa[k]>x): khi=k
-        else: klo=k
-    h=xa[khi]-xa[klo]
-    if (h==0.0):
-        print "Spline Error"
-        return
-    a=(xa[khi]-x)/h
-    b=(x-xa[klo])/h
-    y=a*ya[klo]+b*ya[khi]+((a**3 - a)*y2a[klo]+(b**3 -b)*y2a[khi])*h**2 /6.0
-    return y
-
-def simple_statistics(data,display=False):
-    """
-    Returns average, average dev., standard deviation, 
-    variance, skewness and kurtosis of a data list.
-    """
-    n=len(data)
-    ep=0.0
-    if (n<2):
-        print "Error. Not enough data"
-        return
-    s=0.0
-    for j in range(n): s=s+data[j]
-    ave=s/float(n)
-    adev=0.0
-    var=0.0
-    skew=0.0
-    curt=0.0
-    for j in range(n):
-        s=data[j]
-        adev=adev+abs(s-ave)
-        ep=ep+s
-        p=s*s
-        var=var+p
-        p=p*s
-        skew=skew+p
-        p=p*s
-        curt=curt+p
-    adev=adev/float(n)
-    var=(var-ep*ep/float(n))/(float(n-1))
-    sdev=math.sqrt(var)
-    if display:
-        if (var!=0.0):
-            skew=skew/(float(n)*var*sdev)
-            curt=curt/(float(n)*var*var)-3.0
-            print "Average:\t",ave
-            print "Av. deviation:\t",adev
-            print "Std. deviation:\t",sdev
-            print "Variance:\t",var
-            print "Skewness:\t",skew
-            print "Kurtosis:\t",curt 
-            return (ave,adev,sdev,var,skew,curt)
-        else:
-            print "Average:\t",ave
-            print "Av. deviation:\t",adev
-            print "Std. deviation:\t",sdev
-            print "Variance:\t",var
-            print "Variance=0.0 -> no skew or kurtosis."
-            return (ave,adev,sdev,var)
-    else:
-        if (var!=0.0):
-            skew=skew/(float(n)*var*sdev)
-            curt=curt/(float(n)*var*var)-3.0
-            return (ave,adev,sdev,var,skew,curt)
-        else:
-            #print "Variance=0.0 -> no skew or kurtosis."
-            return (ave,adev,sdev,var)
-
-def ks_one(data):
-    """
-    KS-statistic d and probability prob are computed for given data (list) and
-    CDF (subroutine func). (d is maximum distance between both cdf's).
-    Returns: (d,prob). 
-    Good match for p -> 1.
-    """
-    def func(x):
-        # Cumulative distribution function ranging from 0 (smallest x) to 1 (largest x).
-        return x/5.0
-    def probks(alam):
-        # Kolmogorov-Smirnov probability function
-        eps1=0.001
-        eps2=1.0e-8
-        fac=2.0
-        sum=0.0
-        termbf=0.0
-        a2= -2.0*alam*alam
-        for j in range(1,101):
-            term=fac*math.exp(a2*float(j)*float(j))
-            sum=sum+term
-            if (abs(term) <= eps1*termbf or abs(term) <= eps2*sum): return sum
-            fac=-fac
-            termbf=abs(term)
-        return 1.0
-        
-    fo=0.0
-    n=len(data)
-    data.sort()
-    en=n
-    d=0.0
-    for j in range(n):
-        fn=float(j)/float(en)
-        ff=func(data[j])
-        dt=max(abs(fo-ff),abs(fn-ff))
-        if (dt > d): d=dt
-        fo=fn
-    en=math.sqrt(en)
-    prob=probks((en+0.12+0.11/float(en))*d)
-    return (prob,d)
-        
-def ks_two(data1,data2):
-    """
-    KS-Test for two data sets.
-    Returns: (p-value,D)
-    D - maximum distance of the cdf's
-    Good match for p->1
-    """
-    def probks(alam):
-        # Kolmogorov-Smirnov probability function
-        eps1=0.001
-        eps2=1.0e-8
-        fac=2.0
-        sum=0.0
-        termbf=0.0
-        a2= -2.0*alam*alam
-        for j in range(1,101):
-            term=fac*math.exp(a2*float(j)*float(j))
-            sum=sum+term
-            if (abs(term) <= eps1*termbf or abs(term) <= eps2*sum): return sum
-            fac=-fac
-            termbf=abs(term)
-        return 1.0
-
-    n1=len(data1)
-    n2=len(data2)
-    j1=0
-    j2=0
-    fn1=0.0
-    fn2=0.0
-    data1.sort()
-    data2.sort()
-    en1=n1
-    en2=n2
-    d=0.0
-    while (j1<n1 and j2<n2):
-        d1=data1[j1]
-        d2=data2[j2]
-        if (d1<=d2): 
-            fn1=float(j1)/float(en1)
-            j1=j1+1
-        if (d2<=d1):
-            fn2=float(j2)/float(en2)
-            j2=j2+1
-        dt=abs(fn2-fn1)
-        if (dt > d): d=dt
-    en=math.sqrt(float(en1*en2)/float(en1+en2))
-    prob=probks((en+0.12+0.11/float(en))*d)
-    return (prob,d)
     
 def fdf(x):
     # Example function for newton_raphson().
@@ -1984,44 +1388,6 @@ def col_sum(M):
     for i in range(len(co)):
         co[i]=out[0][i]
     return co
-    
-def txt2laplacian_matrix(file,delimiter,dim,symm=False,outward=True):
-    """
-    Converts textfile to sparse Laplacian matrix. 
-    outward: for directed Laplacians: True for outdegree, False for indegree
-    """        
-    data=read_file(file,delimiter)
-    string2int_data(data)
-    
-    # negative adjacency matrix
-    A_sp=scipy.sparse.lil_matrix((dim,dim), dtype='float32')
-    if symm==False:
-        for i in range(len(data)):
-            if data[i][0]!=data[i][1]: 
-                A_sp[data[i][0],data[i][1]]=-1.0
-    else:
-        for i in range(len(data)):
-            if data[i][0]!=data[i][1]:
-                A_sp[data[i][0],data[i][1]]=-1.0
-                A_sp[data[i][1],data[i][0]]=-1.0
-
-    # degrees on diagonal
-    if symm==False:
-        out_deg=row_sum(A_sp)
-        in_deg=col_sum(A_sp)
-        if outward==True:
-            for i in range(shape(A_sp)[0]):
-                A_sp[i,i]=-out_deg[i]
-        else:
-            for i in range(shape(A_sp)[0]):
-                A_sp[i,i]=-in_deg[i]
-    else:
-        deg=row_sum(A_sp)
-        for i in range(shape(A_sp)[0]):
-            A_sp[i,i]=-deg[i]
-
-    return A_sp
-
         
 def deg_av_nei_deg(G,out='deg-av_n_deg-err.txt'):
     """
@@ -2030,7 +1396,7 @@ def deg_av_nei_deg(G,out='deg-av_n_deg-err.txt'):
     """
     if G.is_directed():
         print 'Graph directed!'
-        return None
+        raise NotImplementedError, "For undirected networks only."
     
     node_deg=G.degree(with_labels=True)
     deg_nodes=revert_dictionary(node_deg)
@@ -2069,7 +1435,7 @@ def directed_deg_av_nei_deg(G,out_d=True,nei_out=False):
     """
     if G.is_directed()==False:
         print 'Graph undirected!'
-        return
+        raise NotImplementedError, "For directed networks only."
 
     # output file name
     if out_d:
@@ -2383,74 +1749,7 @@ def generate_reciprocity_comm_test_digraph(p_bidirection=0.1,\
         
     if comdict: return (G,cd)
     return G
-    
-def shells_single_root(G,root,rtn_stats=False):
-    """
-    Returns the shells for a startnode root.
-    If rtn_stats False: {shell, degrees}
-    If rtn_stats True: nodes in shell, 
-    av. degree and sts_error, Degree sequence 
-    is not returned in latter case.
-    """
-    
-    if G.is_directed(): return None
-    
-    node_sh={}
-    q=[root]
-    sh=0
-    # add nodes to shells
-    while q:
-        next=[]
-        for node in q:
-            if node not in node_sh: node_sh[node]=sh
-            for nei in G.neighbors(node):
-                if nei not in node_sh:
-                    next.append(nei)
-        q=[]
-        sh += 1
-        for node in next: q.append(node)
-    # shell: nodes
-    x=revert_dictionary(node_sh)
-    
-    # degrees and average in shell
-    if rtn_stats:
-        sh_degrees = {}
-        sh_av_deg, sh_stderr = {}, {}
-        for dist in x:
-            sh_degrees[dist] = G.degree(x[dist])
-            sh_av_deg[dist] = mean(sh_degrees[dist])
-            sh_stderr[dist] = std(sh_degrees[dist])/math.sqrt(len(x[dist]))
-        return (x,sh_av_deg,sh_stderr)
-    else: 
-        sh_degrees = {}
-        for dist in x:
-            sh_degrees[dist] = G.degree(x[dist])    
-        return sh_degrees
 
-def shells_all_roots(G):
-    """
-    Performs shell computation for all roots in G.
-    Returns {shell: average degree}
-    """ 
-    if G.is_directed(): return None
-    
-    sh_alldegrees={}
-    sh_stderr={}
-    for root in G.nodes():
-        x=shells_single_root(G,root)
-        for shell in x:
-            if shell in sh_alldegrees:
-                sh_alldegrees[shell].extend(x[shell])
-            else:
-                sh_alldegrees[shell]=x[shell]
-        print 'Root: ', root
-        
-    for sh in sh_alldegrees:
-        sh_stderr[sh]=std(sh_alldegrees[sh])/math.sqrt(float(len(sh_alldegrees[sh])))
-        sh_alldegrees[sh]=mean(sh_alldegrees[sh])
-        
-    return (sh_alldegrees,sh_stderr)
-    
 def link_density(G):
     # Density of (Di)Graph G
     n=float(G.number_of_nodes())
@@ -2551,36 +1850,6 @@ def reciprocity(G):
     std_rho = math.sqrt(s_rho)
     
     return (rho, std_rho, rho_min)
-
-def degree_assortativity_coefficient(G):
-    """
-    Computes assortativity coefficient for an 
-    unweighted Graph or DiGraph.
-    See: 
-    M. Newman, Mixing patterns in networks, 2003
-    """
-    if not G.is_directed(): 
-        G=G.to_directed() 
-    
-    m=1.0/float(G.number_of_edges())
-    def j(G,i):
-        return float(G.in_degree(i))-1.0
-    def k(G,i):
-        return float(G.out_degree(i))-1.0    
-    
-    a,b,c,d,e = [],[],[],[],[]
-    for edge in G.edges():
-        s, t = edge
-        a.append(j(G,s)*k(G,t))
-        b.append(j(G,s))
-        c.append(k(G,t))
-        d.append(j(G,s)**2)
-        e.append(k(G,t)**2)
-        
-    r1=sum(a)-m*sum(b)*sum(c)
-    r2=(sum(d)-m*sum(b)**2) * (sum(e)-m*sum(c)**2)
-    
-    return r1/math.sqrt(r2)
     
 def within_module_degree(edgelist,node_comm_list):
     """
@@ -2754,18 +2023,10 @@ def newman_modularity_Q(G,partition):
     return q
 
 
-
-
 if __name__=="__main__":
-    #filestring="/Users/lentz/Desktop/Static-Analysis/Cumulated.mtx"
-    #G=nx.read_edgelist(filestring,create_using=nx.DiGraph(),data=False)
-    #G=nx.erdos_renyi_graph(10000,0.03)
     G=nx.gnm_random_graph(100000,10000)
     
     print "Generated"
-    #print G.degree()
-    #X=randomize_network_slow(G)
     X=randomize_network(G)
-    #print X.degree()
     print X.number_of_edges(),G.number_of_edges()
 
