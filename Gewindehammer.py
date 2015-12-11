@@ -870,6 +870,8 @@ def matrix_friendly_node_labels(G, return_mapping=False):
     else:
         return X
 
+def w_func(x): return x
+
 def txt2sparse_matrix(file,dim,funk=w_func,delimiter='\t',scale=1.0,\
     rtrn_type='lil',symm=False,selfloops=False,**weightcol):
     """
